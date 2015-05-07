@@ -87,6 +87,7 @@ function handleFileSelect(evt){
 }
 	document.querySelector("#file").onchange = handleFileSelect;
     document.querySelector("#saveBtn").onclick = saveFile;
+
     var allText = document.querySelectorAll( ".lineText" )
 	for (var i=0;i<allText.length;i++) {
 		allText[i].onchange = textChangeListener;
