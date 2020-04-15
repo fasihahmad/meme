@@ -1,48 +1,105 @@
 <html>
 <head>
-<title>Meme Maker</title>
-<meta name="viewport" content="width=device-width" initial-scale>
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<style>
-#image-container { 
-	display:flex;
-}
+<title>Meme Maker | JunkJam</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href=https://blog.junkjam.in/favicon.png rel="shortcut icon">
+<style type="text/css">
+	canvas {
+	    background-color: #f8f9fa;
+	    width: 100%;
+	    height: auto;
+	}	
 </style>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 </head>
 <body>
-<div>
-	<input type="file" id="file" />
-<div>
-<div id="image-container">
-	<canvas width="500" height="500"></canvas>
-	<div>
-		<span>Top Line:</span><br />
-		<input type="text" id="topLineText" class="lineText" /><br />
+
+<nav class="navbar navbar-light bg-light">
+  <a class="navbar-brand" href="https://www.junkjam.in/">
+    <img src="https://blog.junkjam.in/images/icon-48x48.png" width="30" height="30" class="d-inline-block align-top" alt="">
+    JunkJam Meme Maker
+  </a>
+</nav>
+
+<div class="container mt-5">
+
+	<div class="row">
+		<div class="col-md-6">
+			<canvas width="300" height="300"></canvas>
+		</div>
+
 		
-		<span>Bottom Line:</span><br />
-		<input type="text" id="bottomLineText" class="lineText" /><br />
-		<button id="saveBtn">Save</button>
+		<div class="col-md-6">
+
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text">Upload</span>
+				</div>				
+				<div class="custom-file">
+					<input type="file" class="custom-file-input" id="file_upload" aria-describedby="inputGroupFileAddon01">
+				    <label class="custom-file-label" for="file_upload">Choose file</label>
+				 </div>				
+			</div>
+
+			<div class="input-group mb-3">				
+				<div class="input-group-prepend">
+					<span class="input-group-text">Web Link</span>
+				</div>				
+				<input type="url" id="link_upload" class="form-control" />
+			</div>
+
+			<div class="input-group mb-3">				
+				<div class="input-group-prepend">
+					<span class="input-group-text">Top Line</span>
+				</div>				
+				<input type="text" id="topLineText" class="lineText form-control" />
+			</div>
+									
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text">Bottom Line</span>
+				</div>
+				<input type="text" id="bottomLineText" class="lineText form-control" />
+			</div>
+
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text">Share Link</span>
+				</div>
+				<input type="text" id="shareLink" class="form-control" />
+			</div>			
+
+			<div class="input-group mb-3">
+				<div class="btn-group" role="group" aria-label="Basic example">
+				  <a href="#" download="meme.png" class="btn btn-outline-dark" id="meme_download">Download Meme</a>
+				  <button class="btn btn-outline-dark" id="meme_link" data-toggle="tooltip" data-placement="bottom" title="Copied: Share Link">Generate Share Link</button>
+				</div>
+			</div>
+			
+		</div>
+
 	</div>
+
 </div>
+
 <script type="text/javascript">
-function textChangeListener(evt){
-	var id = evt.target.id;
-	var text = evt.target.value;
-	if (id == "topLineText"){
-		window.TopLineText = text;
-	} else{
-		window.BottomLineText = text;
-	}
-	redrawMeme(window.imageSrc, window.TopLineText, window.BottomLineText)
-}
+
+var file_upload = document.querySelector("#file_upload"),
+	link_upload = document.querySelector("#link_upload"),
+	meme_download = document.querySelector('#meme_download'),
+	meme_link = document.querySelector("#meme_link"),	
+	top_line = document.querySelector("#topLineText"),
+	bottom_line = document.querySelector("#bottomLineText"),
+	share_link = document.querySelector("#shareLink"),
+	allText = document.querySelectorAll(".lineText");
+
 
 function redrawMeme(image, topLine, bottomLine){
 	var canvas = document.querySelector('canvas');
 	var ctx = canvas.getContext('2d');
 	
 	if(image){
-		ctx.drawImage(image,0,0,canvas.width,canvas.height);
+		ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 		
 		ctx.font = '30pt Impact';
 		ctx.textAlign = 'center';
@@ -59,12 +116,22 @@ function redrawMeme(image, topLine, bottomLine){
 			ctx.fillText(bottomLine,canvas.width/2, canvas.height -20);
 			ctx.strokeText(bottomLine,canvas.width/2, canvas.height -20);
 		}
+		meme_download.href = canvas.toDataURL('image/png');
 	}
 }
 
-function saveFile(){
-	window.open(document.querySelector('canvas').toDataURL());
+
+function textChangeListener(evt){
+	var id = evt.target.id;
+	var text = evt.target.value;
+	if (id == "topLineText"){
+		window.TopLineText = text;
+	} else{
+		window.BottomLineText = text;
+	}
+	redrawMeme(window.imageSrc, window.TopLineText, window.BottomLineText)
 }
+
 
 function handleFileSelect(evt){
 	var canvasHeight = 500;
@@ -75,22 +142,92 @@ function handleFileSelect(evt){
 	reader.onload = function(fileObject){
 		var data = fileObject.target.result;
 
-		var image = new Image();
-		image.onload = function(){
-			window.imageSrc = this;
-			redrawMeme(window.imageSrc,null,null);
-		}
-		image.src = data;
+		imageRequest(data);
 	};
 	console.log(file);
 	reader.readAsDataURL(file);
 }
-	document.querySelector("#file").onchange = handleFileSelect;
-    document.querySelector("#saveBtn").onclick = saveFile;
-    var allText = document.querySelectorAll( ".lineText" )
+
+function handelWebLinkPaste(evt){
+	//debugger;
+	//let imageURL = evt.target.value;
+	let imageURL = (evt.clipboardData || window.clipboardData).getData('text');
+
+	imageRequest(imageURL);
+}
+
+function imageRequest(data){
+	var image = new Image;
+	image.onload = function(){
+		window.imageSrc = this;
+		redrawMeme(window.imageSrc, window.TopLineText, window.BottomLineText);
+	};
+	image.crossOrigin = "Anonymous";	
+	image.src = data;	
+}
+
+
+function generateShareLink(){
+	var urlParams = new URLSearchParams({
+		top: top_line.value,
+		bottom: bottom_line.value,
+		link: window.imageSrc.src,
+	});
+
+	share_link.value = window.location.origin + "?" + urlParams.toString();
+	share_link.select();
+	share_link.setSelectionRange(0, 999999999);
+	document.execCommand("copy");
+
+	$(meme_link).tooltip('enable');
+	$(meme_link).tooltip('show');
+	$(meme_link).tooltip('disable');
+}
+
+
+
+(function() {
+	file_upload.onchange = handleFileSelect;
+	link_upload.onpaste = handelWebLinkPaste;
+	meme_link.onclick = generateShareLink;
+
 	for (var i=0;i<allText.length;i++) {
+		allText[i].onkeyup = textChangeListener;
 		allText[i].onchange = textChangeListener;
 	}
+
+	var urlParams = new URLSearchParams(window.location.search);
+
+	if(urlParams.get("link")){
+		link_upload.value = urlParams.get("link");
+		imageRequest(link_upload.value);		
+	}
+	else{
+		navigator.clipboard.readText()
+		.then(text => {
+			link_upload.value = text;
+			imageRequest(text);
+		})
+		.catch(err => {
+		  console.log('Something went wrong', err);
+		});
+	}
+
+	const e = new Event("change");
+
+	if(urlParams.get("top")){
+		top_line.value = urlParams.get("top");
+		top_line.dispatchEvent(e);
+	}
+
+	if(urlParams.get("bottom")){
+		bottom_line.value = urlParams.get("bottom");
+		bottom_line.dispatchEvent(e);
+	}
+})();
+
 </script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
