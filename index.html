@@ -54,7 +54,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 			<div class="input-group mb-3">				
 				<div class="input-group-prepend">
-					<span class="input-group-text">Web Link</span>
+					<span class="input-group-text">URL/URI</span>
 				</div>				
 				<input type="url" id="link_upload" class="form-control" />
 			</div>
@@ -63,14 +63,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<div class="input-group-prepend">
 					<span class="input-group-text">Top Line</span>
 				</div>				
-				<input type="text" id="topLineText" class="lineText form-control" />
+				<!--<input type="text" id="topLineText" class="lineText form-control" />-->
+				<textarea rows="1" class="form-control lineText" id="topLineText" aria-label="With textarea"></textarea>
 			</div>
 									
 			<div class="input-group mb-3">
 				<div class="input-group-prepend">
 					<span class="input-group-text">Bottom Line</span>
 				</div>
-				<input type="text" id="bottomLineText" class="lineText form-control" />
+				<!--<input type="text" id="bottomLineText" class="lineText form-control" />-->
+				<textarea rows="1" class="form-control lineText" id="bottomLineText" aria-label="With textarea"></textarea>
 			</div>
 
 			<div class="input-group mb-3">
@@ -104,6 +106,8 @@ var file_upload = document.querySelector("#file_upload"),
 	share_link = document.querySelector("#shareLink"),
 	allText = document.querySelectorAll(".lineText");
 
+const isUrl =  /^(https?:\/\/)?([a-z\d]([a-z\d-.]?[a-z\d])*\.[a-z]([a-z\.]?[a-z])*){2,255}(\/[\w-\.~!$&'()*+,;=:@%]*)*$/i;
+const isUri = /^\s*data:([a-z]+\/[a-z]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
 
 function redrawMeme(image, topLine, bottomLine){
 	var canvas = document.querySelector('canvas');
@@ -119,13 +123,20 @@ function redrawMeme(image, topLine, bottomLine){
 		ctx.fillStyle = 'white';
 
 		if(topLine){
-			ctx.fillText(topLine, canvas.width/2, 40);
-			ctx.strokeText(topLine, canvas.width/2, 40);
+			topLine = topLine.split("\n");
+			for (var i = 0; i<topLine.length; i++){
+				ctx.fillText(topLine[i], canvas.width/2, 40*(i+1));
+				ctx.strokeText(topLine[i], canvas.width/2, 40*(i+1));		
+			}
 			
 		}
 		if(bottomLine){
-			ctx.fillText(bottomLine,canvas.width/2, canvas.height -20);
-			ctx.strokeText(bottomLine,canvas.width/2, canvas.height -20);
+			bottomLine = bottomLine.split("\n");
+			var bOffset = bottomLine.length==1?20:35;
+			for (var i = 0; i<bottomLine.length; i++){				
+				ctx.fillText(bottomLine[i], canvas.width/2, canvas.height -bOffset*(bottomLine.length-i));
+				ctx.strokeText(bottomLine[i], canvas.width/2, canvas.height -bOffset*(bottomLine.length-i));
+			}
 		}
 		meme_download.href = canvas.toDataURL('image/png');
 	}
@@ -179,10 +190,11 @@ function imageRequest(data){
 
 
 function generateShareLink(){
+	var link = window.imageSrc && window.imageSrc.src || "";
 	var urlParams = new URLSearchParams({
 		top: top_line.value,
 		bottom: bottom_line.value,
-		link: window.imageSrc.src,
+		link: isUrl.test(link)?link:"",
 	});
 
 	share_link.value = window.location.origin + "?" + urlParams.toString();
@@ -193,8 +205,18 @@ function generateShareLink(){
 	$(meme_link).tooltip('enable');
 	$(meme_link).tooltip('show');
 	$(meme_link).tooltip('disable');
+
+	window.location.href = share_link.value;
 }
 
+function validatedLink(str){
+	if(isUrl.test(str) || isUri.test(str)){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
 
 
 (function() {
@@ -216,8 +238,10 @@ function generateShareLink(){
 	else{
 		navigator.clipboard.readText()
 		.then(text => {
-			link_upload.value = text;
-			imageRequest(text);
+			if(validatedLink(text)){
+				link_upload.value = text;
+				imageRequest(text);
+			}
 		})
 		.catch(err => {
 		  console.log('Something went wrong', err);
@@ -235,6 +259,8 @@ function generateShareLink(){
 		bottom_line.value = urlParams.get("bottom");
 		bottom_line.dispatchEvent(e);
 	}
+
+	share_link.value = window.location.href;
 })();
 
 </script>
